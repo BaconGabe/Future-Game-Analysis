@@ -6,6 +6,8 @@ library(stringr)
 library(rpart)
 library(rpart.plot)
 
+# load data
+
 path = "metacritic_output.csv"
 dataset <- read_csv(path)
 
@@ -19,12 +21,16 @@ print(colSums(is.na(dataset)))
 dataset = dataset %>% 
   dplyr::select(genre, metascore, platform)
 
+# remove nums from platform names
+
 for (i in 1:length(dataset$platform)) {
   g = dataset$platform[i]
   g = str_replace_all(g, "[^a-zA-Z]", "")
   g = str_trim(g)
   dataset$platform[i] = g
 }
+
+# split genres into columns
 
 genres_list = list()
 for (i in 1:length(dataset$genre)) {
@@ -38,18 +44,20 @@ for (i in 1:length(dataset$genre)) {
   genres_list[i] = list(g)
 }
 
+# set a column to true for games that contain that genre
+
 for (gli in 1:length(genres_list)) {
   for (genre in genres_list[[gli]]) {
     dataset[gli, genre] = TRUE
   }
 }
 
+# set all else to false
+
 for (i in 4:length(colnames(dataset))) {
   dataset[i] = as.logical(unlist(dataset[i]))
   dataset[which(is.na(dataset[i])), i] <- FALSE
 }
-
-sort(table(unlist(genres_list)))
 
 dataset = dataset %>% dplyr::select(-genre)
 
@@ -57,6 +65,8 @@ var_factors = c('platform')
 dataset[var_factors] <- lapply(dataset[var_factors], factor)
 
 # exploratory data analysis
+
+sort(table(unlist(genres_list)))
 
 ggplot(dataset) +
   aes(x = metascore, fill = platform) +
